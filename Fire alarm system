@@ -137,7 +137,7 @@ while True:
 # Step needed here to say that if the temperature > 58 then the buzzer, beacon and evacuation message will play-
 # continuously in a loop until the reset switch is pushed and then the All Clear message will be played.
 
-# This piece of code doesn't work for the reset button. 
+# This piece of code currently doesn't work for the reset button.  
 while True:
     input_state = GPIO.input(12)
     if input_state == False:
