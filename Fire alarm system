@@ -1,0 +1,150 @@
+import os
+import glob
+import time
+import RPi.GPIO as GPIO
+from time import sleep
+import threading
+import socket
+import sys
+
+GPIO.setwarnings(False)
+
+GPIO.setmode(GPIO.BCM) ## Use broadcom numbering
+
+alarm_on = True  # Flag to stop the thread
+state = b"ALARM OFF"
+
+def setup():
+    global BuzzerPin
+    global BeaconPin
+    global EvacuationPin
+    global AllclearPin
+    global ResetPin
+
+ResetPin = 12        #GPIO12
+EvacuationPin = 22   #GPIO22
+BuzzerPin = 23       #GPIO23
+BeaconPin = 24       #GPIO24
+AllClearPin = 26     #GPIO26
+
+#Buzzer Setup (RS PRO 96 dB Piezo Buzzer)
+GPIO.setup(BuzzerPin, GPIO.OUT)
+GPIO.output(BuzzerPin, GPIO.LOW)
+    
+# LED Beacon Setup (Fulleon 600111FUL-0000)
+GPIO.setup(BeaconPin, GPIO.OUT)
+GPIO.output(BeaconPin, GPIO.LOW)
+    
+#Evacuation Message Setup (ISD1820 Voice Recorder)
+GPIO.setup(EvacuationPin, GPIO.OUT)
+GPIO.output(EvacuationPin, GPIO.LOW)
+
+#All Clear Message Setup (ISD1820 Voice Recorder)
+GPIO.setup(AllClearPin, GPIO.OUT)
+GPIO.output(AllClearPin, GPIO.LOW)
+
+#Reset Button Setup (Tactile Switch)
+GPIO.setup(ResetPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+def beep():
+    while alarm_on:
+      
+            GPIO.output(BuzzerPin, GPIO.HIGH)
+            sleep(6)
+            GPIO.output(BuzzerPin, GPIO.LOW)
+            sleep(16)
+    
+def light():
+    while alarm_on:
+       
+            GPIO.output(BeaconPin, GPIO.HIGH)
+            sleep(0.5)
+            GPIO.output(BeaconPin, GPIO.LOW)
+            sleep(0.5)
+            
+def evacuation():
+    while alarm_on:
+        
+            sleep(8)
+            GPIO.output(EvacuationPin, GPIO.HIGH) 
+            sleep(1)
+            GPIO.output(EvacuationPin, GPIO.LOW) 
+            sleep(12)
+    
+def destroy():
+    GPIO.output(BuzzerPin, GPIO.HIGH)
+    GPIO.cleanup()                     # Release resource
+
+if __name__== '__main__':     # Program start from here
+    try:
+        setup()
+        thrd1 = threading.Thread(target=beep).start()
+        thrd2 = threading.Thread(target=light).start()
+        thrd3 = threading.Thread(target=evacuation).start()   
+      
+        
+    except KeyboardInterrupt:  # When 'Ctrl+C' is pressed, the child program destroy() will be  executed.
+        destroy()
+          
+          
+# Finds the correct device file that holds the temperature data
+
+base_dir = '/sys/bus/w1/devices/'
+device_folder = glob.glob(base_dir + '28*')[0]
+device_file = device_folder + '/w1_slave'
+ 
+# A function that reads the DS18B20 sensors data
+
+def read_temp_raw():
+  f = open(device_file, 'r') # Opens the temperature device file
+  lines = f.readlines() # Returns the text
+  f.close()
+  return lines
+ 
+# Convert the value of the sensor into a temperature
+
+def read_temp():
+  lines = read_temp_raw() # Read the temperature 'device file'
+
+  # While the first line does not contain 'YES', wait for 0.2s
+  # and then read the device file again.
+  
+  while lines[0].strip()[-3:] != 'YES':
+    time.sleep(0.1)
+    lines = read_temp_raw()
+ 
+  # Look for the position of the '=' in the second line of the
+  # device file.
+  
+  equals_pos = lines[1].find('t=')
+ 
+  # If the '=' is found, convert the rest of the line after the
+  # '=' into degrees Celsius, then degrees Fahrenheit
+  
+  if equals_pos != -1:
+    temp_string = lines[1][equals_pos+2:]
+    temp_c = float(temp_string) / 1000.0
+    temp_f = temp_c * 9.0 / 5.0 + 32.0
+    return temp_c, temp_f
+
+#Print out the temperature until the program is stopped.
+
+while True:
+    temperature = read_temp()
+    print (temperature)
+    time.sleep(1)
+    
+# Step needed here to say that if the temperature > 25 then the buzzer, beacon and evacuation message will play-
+# continuously in a loop until the reset switch is pushed and then the All Clear message will be played.
+ 
+while True:
+    input_state = GPIO.input(12)
+    if input_state == False:
+        GPIO.output(BuzzerPin, GPIO.LOW)
+        GPIO.output(BeaconPin, GPIO.LOW)
+        GPIO.output(EvacuationPin, GPIO.LOW)
+        GPIO.output(AllclearPin, GPIO.HIGH) # All Clear Message given through an ISD1820 Voice Recorder
+        time.sleep(0.2)
+        
+pause()
+     
