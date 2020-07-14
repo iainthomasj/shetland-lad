@@ -46,7 +46,7 @@ GPIO.output(AllClearPin, GPIO.LOW)
 #Reset Button Setup (Tactile Switch)
 GPIO.setup(ResetPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-def beep():
+def buzzer():
     while alarm_on:
       
             GPIO.output(BuzzerPin, GPIO.HIGH)
@@ -54,7 +54,7 @@ def beep():
             GPIO.output(BuzzerPin, GPIO.LOW)
             sleep(16)
     
-def light():
+def beacon():
     while alarm_on:
        
             GPIO.output(BeaconPin, GPIO.HIGH)
@@ -78,8 +78,8 @@ def destroy():
 if __name__== '__main__':     # Program start from here
     try:
         setup()
-        thrd1 = threading.Thread(target=beep).start()
-        thrd2 = threading.Thread(target=light).start()
+        thrd1 = threading.Thread(target=buzzer).start()
+        thrd2 = threading.Thread(target=beacon).start()
         thrd3 = threading.Thread(target=evacuation).start()   
       
         
