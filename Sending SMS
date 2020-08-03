@@ -6,7 +6,7 @@ import serial
 import time
 
 class TextMessage:
-    def __init__(self, recipient="07884003023", message="Hello World"):
+    def __init__(self, recipient="???????????", message="Hello World"):
         self.recipient = recipient
         self.content = message
 
