@@ -1,0 +1,93 @@
+import os
+import glob
+import time
+import RPi.GPIO as GPIO
+from time import sleep
+from signal import pause
+
+GPIO.setmode(GPIO.BCM) ## Use board pin numbering
+
+ResetPin = 12         # GPIO12 
+EvacuationPin = 22    # GPIO22
+BuzzerPin = 23        # GPIO23
+BeaconPin = 24        # GPIO24
+AllclearPin = 26      # GPIO26    
+    
+#Buzzer Setup
+GPIO.setup(BuzzerPin, GPIO.OUT)
+GPIO.output(BuzzerPin, GPIO.LOW)
+    
+#Beacon Setup
+GPIO.setup(BeaconPin, GPIO.OUT)
+GPIO.output(BeaconPin, GPIO.LOW)
+    
+#Evacuation Setup
+GPIO.setup(EvacuationPin, GPIO.OUT)
+GPIO.output(EvacuationPin, GPIO.LOW)
+
+#All Clear Setup
+GPIO.setup(AllclearPin, GPIO.OUT)
+GPIO.output(AllclearPin, GPIO.LOW)
+
+#Reset Button Setup
+GPIO.setup(ResetPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+# Finds the correct device file that holds the temperature data
+base_dir = '/sys/bus/w1/devices/'
+device_folder = glob.glob(base_dir + '28*')[0]
+device_file = device_folder + '/w1_slave'
+ 
+# A function that reads the sensors data
+def read_temp_raw():
+  f = open(device_file, 'r') # Opens the temperature device file
+  lines = f.readlines() # Returns the text
+  f.close()
+  return lines
+ 
+# Convert the value of the sensor into a temperature
+def read_temp():
+  lines = read_temp_raw() # Read the temperature 'device file'
+
+  # While the first line does not contain 'YES', wait for 0.2s
+  # and then read the device file again.
+  while lines[0].strip()[-3:] != 'YES':
+    time.sleep(0.1)
+    lines = read_temp_raw()
+ 
+  # Look for the position of the '=' in the second line of the
+  # device file.
+  equals_pos = lines[1].find('t=')
+ 
+  # If the '=' is found, convert the rest of the line after the
+  # '=' into degrees Celsius, then degrees Fahrenheit
+  if equals_pos != -1:
+    temp_string = lines[1][equals_pos+2:]
+    temp_c = float(temp_string) / 1000.0
+    temp_f = temp_c * 9.0 / 5.0 + 32.0
+    return temp_c, temp_f
+
+#Print out the temperature until the program is stopped.
+while True:
+    temperature = read_temp()
+    print (temperature)
+    time.sleep(1)
+    
+if temperature > 21:
+    # Beacon to be continually flashing during alarm condition    
+    GPIO.output(BeaconPin,GPIO.HIGH)
+    sleep(0.5) 
+    GPIO.output(BeaconPin,GPIO.LOW)
+    sleep(0.5) 
+        
+    # Buzzer to be on for 6 seconds and off for 16 seconds
+    GPIO.output(BuzzerPin,GPIO.HIGH)
+    sleep(6) 
+    GPIO.output(BuzzerPin,GPIO.LOW)
+        
+    # Evacuation message to be transmitted immediatey after the buzzer has finished sounding
+       
+    GPIO.output(EvacuationPin, GPIO.HIGH) 
+    sleep(1)
+    GPIO.output(EvacuationPin, GPIO.LOW) 
+    sleep(12)
+        
