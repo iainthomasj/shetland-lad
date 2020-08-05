@@ -75,12 +75,12 @@ def checkResetSwitchUtil():
 
     STATUS = 0
 
-def checkResetSwitch()
+def checkResetSwitch():
     checkResetThread = threading.Thread(target=checkResetSwitchUtil)
     return checkResetThread
 
 def fireDetected():
-    gloabl STATUS
+    global STATUS
     
     STATUS = 1
     checkResetThread = checkResetSwitch()
