@@ -38,11 +38,11 @@ def setup():
     GPIO.setup(beacon_pin, GPIO.OUT)
     GPIO.output(beacon_pin, GPIO.LOW)
         
-    #Evacuation Message Setup (ISD1820 Voice Recorder)
+    #Evacuation Message Setup (ISD1820 Voice Recorder 1)
     GPIO.setup(evacuation_pin, GPIO.OUT)
     GPIO.output(evacuation_pin, GPIO.LOW)
 
-    #All Clear Message Setup (ISD1820 Voice Recorder)
+    #All Clear Message Setup (ISD1820 Voice Recorder 2)
     GPIO.setup(all_clear_pin, GPIO.OUT)
     GPIO.output(all_clear_pin, GPIO.LOW)
 
@@ -52,8 +52,6 @@ def setup():
     global MUSIC_FILE
     mixer.init()
     mixer.music.load(MUSIC_FILE)
-
-
 
 
 def startBuzzerSound():
