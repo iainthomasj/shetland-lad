@@ -1,0 +1,102 @@
+import os
+import sys
+import time
+from time import sleep
+import glob
+import socket
+from pygame import mixer 
+import threading
+import RPi.GPIO as GPIO
+
+
+
+reset_pin = 12
+evacuation_pin = 22
+buzzer_pin = 23
+beacon_pin = 24
+all_clear_pin = 26
+
+TEMP_CHECK_INTERVAL = 1
+RST_CHECK_INTERVAL = 1
+
+STATUS = 0  # 0 -> No Fire || 1 -> Fire Detected
+
+MUSIC_FILE = "abc.mp3"
+
+
+def setup():
+    global reset_pin, evacuation_pin, buzzer_pin, beacon_pin, all_clear_pin
+    
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM) 
+
+    #Buzzer Setup (RS PRO 96 dB Piezo Buzzer)
+    GPIO.setup(buzzer_pin, GPIO.OUT)
+    GPIO.output(buzzer_pin, GPIO.LOW)
+        
+    # LED Beacon Setup (Fulleon 600111FUL-0000)
+    GPIO.setup(beacon_pin, GPIO.OUT)
+    GPIO.output(beacon_pin, GPIO.LOW)
+        
+    #Evacuation Message Setup (ISD1820 Voice Recorder)
+    GPIO.setup(evacuation_pin, GPIO.OUT)
+    GPIO.output(evacuation_pin, GPIO.LOW)
+
+    #All Clear Message Setup (ISD1820 Voice Recorder)
+    GPIO.setup(all_clear_pin, GPIO.OUT)
+    GPIO.output(all_clear_pin, GPIO.LOW)
+
+    #Reset Button Setup (Tactile Switch)
+    GPIO.setup(reset_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    global MUSIC_FILE
+    mixer.init()
+    mixer.music.load(MUSIC_FILE)
+
+
+
+
+def startBuzzerSound():
+    global RST_CHECK_INTERVAL, MUSIC_FILE, STATUS
+
+    mixer.music.play(loops = -1)
+
+    while STATUS:
+        time.sleep(RST_CHECK_INTERVAL)
+
+    mixer.music.stop()
+
+
+def checkResetSwitchUtil():
+    global STATUS, RST_CHECK_INTERVAL, reset_pin
+    
+    while GPIO.input(reset_pin):
+        time.sleep(RST_CHECK_INTERVAL)
+
+    STATUS = 0
+
+def checkResetSwitch()
+    checkResetThread = threading.Thread(target=checkResetSwitchUtil)
+    return checkResetThread
+
+def fireDetected():
+    gloabl STATUS
+    
+    STATUS = 1
+    checkResetThread = checkResetSwitch()
+    startBuzzerSound()
+
+    checkResetThread.join()
+
+def main():
+    global TEMP_CHECK_INTERVAL
+
+    while True:
+        while read_temp < 58:
+            time.sleep(TEMP_CHECK_INTERVAL)
+
+        fireDetected()
+
+if __name__ == "__main__":
+    setup()
+    main()
