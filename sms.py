@@ -5,7 +5,7 @@ import serial
 import time
 
 class TextMessage:
-    def __init__(self, recipient="???????????", message="Hello World"):
+    def __init__(self, recipient="*******3023", message="Fire and Rescue Service required for a reported fire in a detached garage, 48 Fogralea, Lerwick, Shetland Isles, ZE10SE."):
         self.recipient = recipient
         self.content = message
 
@@ -38,7 +38,7 @@ class TextMessage:
         self.ser.close()
 
 if __name__ == "__main__":
-    tm = TextMessage("07884003023", "Hello Iain")
+    tm = TextMessage("*******3023", "Fire and Rescue Service required for a reported fire in a detached garage, 48 Fogralea, Lerwick, Shetland Isles, ZE10SE.")
     tm.connectPhone()
     try:
         tm.sendMessage()
