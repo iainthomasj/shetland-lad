@@ -10,7 +10,6 @@ import RPi.GPIO as GPIO
 
 from sms import TextMessage
 
-
 reset_pin = 12
 evacuation_pin = 22
 buzzer_pin = 23
@@ -53,9 +52,6 @@ def setup():
 
     #Reset Button Setup (Tactile Switch)
     GPIO.setup(reset_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-
-
 
 base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
@@ -101,7 +97,6 @@ def startBuzzerSound():
     global RST_CHECK_INTERVAL, STATUS,\
            evacuation_pin, buzzer_pin, beacon_pin, reset_pin
 
-
     while STATUS:
         GPIO.output(buzzer_pin, 1)
         time.sleep(6)
@@ -118,9 +113,9 @@ def blinkLED():
     
     while STATUS: # Valid if STATUS != 0
         GPIO.output(beacon_pin, 1)
-        time.sleep(2)
+        time.sleep(0.5)
         GPIO.output(beacon_pin, 0)
-        time.sleep(2) 
+        time.sleep(0.5) 
 
 def checkResetSwitchUtil():
     global STATUS, RST_CHECK_INTERVAL, reset_pin
@@ -151,7 +146,7 @@ def main():
     global TEMP_CHECK_INTERVAL
 
     while True:
-        while read_temp() < 25:
+        while read_temp() < 58:
             print (read_temp())
             time.sleep(TEMP_CHECK_INTERVAL)
 
