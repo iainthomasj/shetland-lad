@@ -1,6 +1,3 @@
-"""
-sms.py - Used to send txt messages.
-"""
 import serial
 import time
 
